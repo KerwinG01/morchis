@@ -18,6 +18,8 @@
   #open{position:fixed;bottom:calc(4% + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);
     background:rgba(255,92,138,.9);color:#fff;border:0;border-radius:30px;padding:13px 26px;font:inherit;
     font-size:17px;box-shadow:0 0 20px rgba(255,80,130,.7);display:none;z-index:2}
+  #mute{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:14px;z-index:6;width:42px;height:42px;
+    border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:20px;display:none}
   #letter{position:fixed;inset:0;background:rgba(10,6,18,.93);z-index:5;display:none;overflow-y:auto;
     -webkit-overflow-scrolling:touch;padding:calc(30px + env(safe-area-inset-top,0px)) 24px calc(40px + env(safe-area-inset-bottom,0px))}
   #letter.on{display:block}
@@ -39,6 +41,8 @@
   <h1>4 años</h1>
   <p>de ti y de mí</p>
 </div>
+<audio id="bgm" src="cancion.mp3" loop preload="auto"></audio>
+<button id="mute">🔊</button>
 <button id="open">💌 Abrir mensaje</button>
 <div id="letter"><div id="card"></div></div>
 <div id="hint">TOCA LA PANTALLA ♥</div>
@@ -115,10 +119,23 @@ function tap(e){
   const pts = e.changedTouches ? [...e.changedTouches] : [e];
   pts.forEach(p=>launch(p.clientX,p.clientY));
   document.getElementById("open").style.display="block";
+  startMusic();
   if(navigator.vibrate) navigator.vibrate(15);
 }
 cv.addEventListener("touchstart",tap,{passive:false});
 cv.addEventListener("mousedown",tap);
+
+// ===== música =====
+const bgm=document.getElementById("bgm"), muteBtn=document.getElementById("mute");
+let musicOn=false;
+function startMusic(){
+  if(musicOn) return;
+  bgm.volume=.7;
+  bgm.play().then(()=>{musicOn=true;muteBtn.style.display="block";}).catch(()=>{});
+}
+muteBtn.addEventListener("click",()=>{
+  bgm.muted=!bgm.muted; muteBtn.textContent=bgm.muted?"🔇":"🔊";
+});
 
 // ===== carta =====
 const letter=document.getElementById("letter"), card=document.getElementById("card");
