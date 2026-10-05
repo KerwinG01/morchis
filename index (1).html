@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0612">
+<title>4 años juntos</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a0612;overflow:hidden;
+    -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;
+    font-family:Georgia,"Times New Roman",serif}
+  canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:block}
+  #title{position:fixed;top:12%;left:0;right:0;text-align:center;color:#ffe3ec;pointer-events:none;
+    text-shadow:0 0 18px rgba(255,80,130,.7);padding:0 20px;
+    padding-top:env(safe-area-inset-top,0px)}
+  #title h1{margin:0;font-size:clamp(34px,10vw,64px);font-weight:400;letter-spacing:1px}
+  #title p{margin:10px 0 0;font-size:clamp(15px,4vw,20px);opacity:.85;font-style:italic}
+  #open{position:fixed;bottom:calc(4% + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);
+    background:rgba(255,92,138,.9);color:#fff;border:0;border-radius:30px;padding:13px 26px;font:inherit;
+    font-size:17px;box-shadow:0 0 20px rgba(255,80,130,.7);display:none;z-index:2}
+  #letter{position:fixed;inset:0;background:rgba(10,6,18,.93);z-index:5;display:none;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;padding:calc(30px + env(safe-area-inset-top,0px)) 24px calc(40px + env(safe-area-inset-bottom,0px))}
+  #letter.on{display:block}
+  #card{max-width:520px;margin:0 auto;color:#ffe3ec;font-size:clamp(17px,4.6vw,20px);line-height:1.65}
+  #card h2{text-align:center;font-weight:400;font-size:clamp(26px,8vw,36px);margin:0 0 22px;text-shadow:0 0 14px rgba(255,80,130,.7)}
+  #card p{margin:0 0 18px;opacity:0;transform:translateY(12px);transition:opacity 1.2s,transform 1.2s}
+  #card p.in{opacity:1;transform:none}
+  #card .end{text-align:center;font-size:24px}
+  #close{display:block;margin:26px auto 0;background:none;border:1px solid #ff9ebb;color:#ffb3c8;
+    border-radius:30px;padding:10px 24px;font:inherit;font-size:16px}
+  #hint{position:fixed;bottom:calc(8% + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;
+    color:#ffb3c8;font-size:15px;letter-spacing:2px;pointer-events:none;animation:pulse 2s infinite}
+  @keyframes pulse{50%{opacity:.3}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="title">
+  <h1>4 años</h1>
+  <p>de ti y de mí</p>
+</div>
+<button id="open">💌 Abrir mensaje</button>
+<div id="letter"><div id="card"></div></div>
+<div id="hint">TOCA LA PANTALLA ♥</div>
+
+<script>
+// ====== CONFIGURACIÓN ======
+const MESSAGE = [
+ "🌸 Por lo general se me olvidan las fechas 😢 pero hoy la recordé, y quise hacer algo especial y bonito para la niña 🥰🥰",
+ "La niña es muy especial en mi vida ✨ Aunque por lo general no digo los sentimientos ni lo que siento, eres muy especial para mí, amorchis 💕 He aprendido muchas cosas contigo y siempre he querido dar lo mejor de mí para ti.",
+ "Este aniversario es especial porque será el último aniversario de novios, Dios mediante 🙏 ¡y qué nervios!, porque son muchas cosas, amorchis 💍 Y aunque no nos ha ido de la mejor manera, sé que vamos a salir adelante 🌱 A diario siempre buscaré nuestro bienestar.",
+ "Te amo mucho, mi vida ❤️ Amo mucho a la nariz 👃💖",
+ "Quiero que sepas que el amor llega, se transforma y se queda en nuestros corazones 💞 Ha sido tanto que hemos llegado a los 4 años de novios 🥂 y aún sabemos que nos queda inmenso tiempo por compartir, grandes conversaciones por tener y momentos increíbles por vivir 🌍✨",
+ "¡Te amo! 💘"
+];
+const COLORS = ["#ff3d71","#ff6b9d","#ff9ebb","#ffd1dc","#ffffff","#ffc247","#c77dff"];
+// ===========================
+
+const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+let W, H, DPR;
+function resize(){
+  DPR = Math.min(window.devicePixelRatio||1, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = W*DPR; cv.height = H*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener("resize", resize); resize();
+
+const rockets=[], sparks=[], hearts=[], stars=[];
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=()=>COLORS[(Math.random()*COLORS.length)|0];
+
+for(let i=0;i<70;i++) stars.push({x:Math.random(),y:Math.random(),r:rnd(.3,1.4),p:Math.random()*6});
+
+function heartPath(x,y,s){
+  ctx.beginPath();
+  ctx.moveTo(x, y+s*.35);
+  ctx.bezierCurveTo(x-s*.1,y+s*.1, x-s*.6,y-s*.05, x-s*.5,y-s*.35);
+  ctx.bezierCurveTo(x-s*.4,y-s*.65, x-s*.05,y-s*.6, x,y-s*.3);
+  ctx.bezierCurveTo(x+s*.05,y-s*.6, x+s*.4,y-s*.65, x+s*.5,y-s*.35);
+  ctx.bezierCurveTo(x+s*.6,y-s*.05, x+s*.1,y+s*.1, x,y+s*.35);
+  ctx.closePath();
+}
+
+function launch(tx,ty){
+  rockets.push({x:tx+rnd(-20,20), y:H, tx, ty, vy:-rnd(14,17), c:pick()});
+}
+
+function explode(x,y){
+  const c1=pick(), c2=pick();
+  // anillo clásico
+  const n=46, sp=rnd(3,5);
+  for(let i=0;i<n;i++){
+    const a=i/n*Math.PI*2, v=sp*rnd(.6,1.1);
+    sparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,d:rnd(.012,.02),c:i%2?c1:c2,r:rnd(1.2,2.2)});
+  }
+  // explosión en forma de corazón
+  const m=36;
+  for(let i=0;i<m;i++){
+    const t=i/m*Math.PI*2;
+    const hx=16*Math.pow(Math.sin(t),3);
+    const hy=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
+    sparks.push({x,y,vx:hx*.2,vy:hy*.2,life:1,d:.012,c:"#ff5c8a",r:2.4});
+  }
+  // corazones que flotan
+  for(let i=0;i<9;i++){
+    hearts.push({x:x+rnd(-25,25),y:y+rnd(-25,25),vx:rnd(-1.4,1.4),vy:rnd(-2.6,-.6),
+      s:rnd(12,30),life:1,d:rnd(.006,.011),c:pick(),w:rnd(0,6)});
+  }
+}
+
+function tap(e){
+  e.preventDefault();
+  document.getElementById("hint").style.display="none";
+  const pts = e.changedTouches ? [...e.changedTouches] : [e];
+  pts.forEach(p=>launch(p.clientX,p.clientY));
+  document.getElementById("open").style.display="block";
+  if(navigator.vibrate) navigator.vibrate(15);
+}
+cv.addEventListener("touchstart",tap,{passive:false});
+cv.addEventListener("mousedown",tap);
+
+// ===== carta =====
+const letter=document.getElementById("letter"), card=document.getElementById("card");
+card.innerHTML="<h2>Feliz aniversario 💖</h2>"+MESSAGE.map((t,i)=>
+  "<p"+(i==MESSAGE.length-1?' class="end"':'')+">"+t+"</p>").join("")+
+  '<button id="close">Volver a los fuegos 🎆</button>';
+document.getElementById("open").addEventListener("click",()=>{
+  letter.classList.add("on"); letter.scrollTop=0;
+  card.querySelectorAll("p").forEach((p,i)=>{p.classList.remove("in");setTimeout(()=>p.classList.add("in"),500+i*1400);});
+});
+document.getElementById("close").addEventListener("click",()=>letter.classList.remove("on"));
+
+// fuegos automáticos suaves
+setInterval(()=>{ if(rockets.length<2) launch(rnd(W*.15,W*.85),rnd(H*.2,H*.5)); },2600);
+
+function frame(t){
+  ctx.globalCompositeOperation="source-over";
+  ctx.fillStyle="rgba(10,6,18,.22)";
+  ctx.fillRect(0,0,W,H);
+
+  stars.forEach(s=>{
+    ctx.globalAlpha=.4+.4*Math.sin(t/700+s.p);
+    ctx.fillStyle="#fff";ctx.fillRect(s.x*W,s.y*H,s.r,s.r);
+  });
+  ctx.globalAlpha=1;
+  ctx.globalCompositeOperation="lighter";
+
+  for(let i=rockets.length-1;i>=0;i--){
+    const r=rockets[i];
+    r.y+=r.vy; r.vy*=.985;
+    ctx.fillStyle=r.c;ctx.beginPath();ctx.arc(r.x,r.y,2.2,0,7);ctx.fill();
+    if(r.y<=r.ty || r.vy>-2.2){explode(r.x,r.y);rockets.splice(i,1);}
+  }
+  for(let i=sparks.length-1;i>=0;i--){
+    const s=sparks[i];
+    s.x+=s.vx; s.y+=s.vy; s.vx*=.985; s.vy=s.vy*.985+.045; s.life-=s.d;
+    if(s.life<=0){sparks.splice(i,1);continue;}
+    ctx.globalAlpha=s.life;ctx.fillStyle=s.c;
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill();
+  }
+  ctx.globalCompositeOperation="source-over";
+  for(let i=hearts.length-1;i>=0;i--){
+    const h=hearts[i];
+    h.w+=.05; h.x+=h.vx+Math.sin(h.w)*.5; h.y+=h.vy; h.vy*=.995; h.life-=h.d;
+    if(h.life<=0){hearts.splice(i,1);continue;}
+    ctx.globalAlpha=Math.min(1,h.life*1.5);
+    ctx.fillStyle=h.c;ctx.shadowColor=h.c;ctx.shadowBlur=12;
+    heartPath(h.x,h.y,h.s);ctx.fill();
+  }
+  ctx.shadowBlur=0;ctx.globalAlpha=1;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+setTimeout(()=>launch(W/2,H*.35),600);
+</script>
+</body>
+</html>
